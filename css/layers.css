@@ -1,0 +1,120 @@
+/* Layers Panel */
+.layers-panel-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.layers-empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.layers-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.layer-item:last-child {
+    border-bottom: none;
+}
+
+.layer-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.layer-item.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-left: 3px solid var(--primary-color);
+}
+
+.layer-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.layer-icon {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.layer-name {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    outline: none;
+}
+
+.layer-name[contenteditable="true"] {
+    background: var(--bg-color);
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--primary-color);
+}
+
+.layer-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.layer-item:hover .layer-actions,
+.layer-item.active .layer-actions {
+    opacity: 1;
+}
+
+.layer-btn {
+    width: 24px; height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.layer-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+}
+
+.layer-item.locked .layer-name { opacity: 0.5; }
+.layer-item.hidden-layer .layer-name { opacity: 0.3; }
+
+.visibility-btn, .lock-btn { opacity: 0.5; }
+
+.layer-item.locked .lock-btn,
+.layer-item.hidden-layer .visibility-btn,
+.layer-item:hover .visibility-btn,
+.layer-item:hover .lock-btn,
+.layer-item.active .visibility-btn,
+.layer-item.active .lock-btn {
+    opacity: 1;
+}

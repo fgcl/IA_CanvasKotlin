@@ -1,0 +1,135 @@
+/* Code Output Styles */
+/* Language Toggle in Header */
+.language-toggle {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px;
+    border-radius: 8px;
+    gap: 4px;
+}
+
+.lang-btn {
+    background: transparent;
+    border: none;
+    color: #858585;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-btn:hover {
+    color: #cccccc;
+}
+
+.lang-btn.active {
+    background: #6200EE;
+    color: white;
+    box-shadow: 0 2px 8px rgba(98, 0, 238, 0.4);
+}
+
+.sidebar-header-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 12px;
+}
+
+#language-toggle-host {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.code-sidebar .sidebar-toggle {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
+    flex-shrink: 0;
+}
+
+#copy-code {
+    flex-shrink: 0;
+}
+
+.code-container {
+    flex: 1;
+    background: #1e1e1e; /* VS Code dark background */
+    padding: 4px 0;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    overflow: auto;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    position: relative;
+}
+
+pre[class*="language-"] {
+    background: transparent !important;
+    margin: 0 !important;
+    padding: 0 16px 16px 36px !important;
+    overflow: visible !important;
+}
+
+code[class*="language-"] {
+    font-family: 'Fira Code', monospace !important;
+    text-shadow: none !important;
+    white-space: pre !important;
+}
+
+/* Region Folding Styles */
+.code-region {
+    margin-bottom: 4px;
+}
+
+.region-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+}
+
+.region-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.fold-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #858585;
+    transition: transform 0.2s;
+}
+
+.region-header.collapsed .fold-icon {
+    transform: rotate(-90deg);
+}
+
+.region-label {
+    color: #ce9178; /* VS Code string color for labels */
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.region-placeholder {
+    color: #858585;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    margin-left: 4px;
+}

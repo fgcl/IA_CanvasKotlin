@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotlin Canvas Generator | Paint for KMP</title>
+    <!-- Modular Styles -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/toolbar.css">
+    <link rel="stylesheet" href="css/property-editor.css">
+    <link rel="stylesheet" href="css/color-picker.css">
+    <link rel="stylesheet" href="css/canvas.css">
+    <link rel="stylesheet" href="css/layers.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/code.css">
+    <link rel="stylesheet" href="css/timeline.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Prism Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-kotlin.min.js"></script>
+</head>
+<body class="dark-theme">
+    <main>
+        <!-- Left pull button removed for auto-hide UI -->
+        
+
+        <div id="right-sidebar-pull" class="sidebar-pull-btn right" title="Mostrar Código">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </div>
+        <aside id="left-sidebar" class="sidebar floating-panel tools-sidebar glass">
+            <!-- Sidebar toggle is now automatic -->
+            
+            <div class="logo-sidebar">
+                <div class="icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.5 1.5"></path><path d="M10.4 10.4L22 22"></path></svg>
+                </div>
+                <h1>Kotlin<span>Canvas</span></h1>
+            </div>
+
+            <div id="property-editor" class="property-editor">
+                <h3>Propriedades</h3>
+                <div id="geometry-props" class="prop-group grid-2x2 hidden">
+                    <div class="prop-subgroup">
+                        <div class="prop-label-row">
+                            <label>X</label>
+                            <div class="kf-toggle" data-prop="x"></div>
+                        </div>
+                        <input type="number" id="geo-x">
+                    </div>
+                    <div class="prop-subgroup">
+                        <div class="prop-label-row">
+                            <label>Y</label>
+                            <div class="kf-toggle" data-prop="y"></div>
+                        </div>
+                        <input type="number" id="geo-y">
+                    </div>
+                    <div class="prop-subgroup">
+                        <div class="prop-label-row">
+                            <label>W</label>
+                            <div class="kf-toggle" data-prop="width"></div>
+                        </div>
+                        <input type="number" id="geo-w">
+                    </div>
+                    <div class="prop-subgroup">
+                        <div class="prop-label-row">
+                            <label>H</label>
+                            <div class="kf-toggle" data-prop="height"></div>
+                        </div>
+                        <input type="number" id="geo-h">
+                    </div>
+                </div>
+                <div class="prop-group">
+                    <div class="prop-label-row">
+                        <label>Cor de Preenchimento</label>
+                        <div class="kf-toggle" data-prop="fillColor"></div>
+                    </div>
+                    <div id="fill-color-picker"></div>
+                </div>
+                <div class="prop-group">
+                    <div class="prop-label-row">
+                        <label>Cor do Traço</label>
+                        <div class="kf-toggle" data-prop="strokeColor"></div>
+                    </div>
+                    <div id="stroke-color-picker"></div>
+                </div>
+                <div class="prop-group">
+                    <div class="prop-header-row">
+                        <div class="prop-label-row">
+                            <label>Largura do Traço</label>
+                            <div class="kf-toggle" data-prop="strokeWidth"></div>
+                        </div>
+                        <div class="input-unit-wrapper">
+                            <input type="number" id="stroke-width-input" value="2" min="0" max="20" step="1">
+                            <span class="unit">px</span>
+                        </div>
+                    </div>
+                    <input type="range" id="stroke-width" min="0" max="20" value="2">
+                </div>
+                <div class="prop-group">
+                    <div class="prop-header-row">
+                        <div class="prop-label-row">
+                            <label>Opacidade</label>
+                            <div class="kf-toggle" data-prop="opacity"></div>
+                        </div>
+                        <div class="input-unit-wrapper">
+                            <input type="number" id="opacity-input" value="100" min="0" max="100" step="1">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                    <input type="range" id="opacity" min="0" max="100" value="100">
+                </div>
+                <div id="text-props" class="prop-group hidden">
+                    <div class="prop-label-row">
+                        <label>Conteúdo do Texto</label>
+                        <div class="kf-toggle" data-prop="text"></div>
+                    </div>
+                    <input type="text" id="text-content" placeholder="Escreva aqui...">
+                    <div class="prop-label-row">
+                        <label>Tamanho da Fonte</label>
+                        <div class="kf-toggle" data-prop="fontSize"></div>
+                    </div>
+                    <input type="number" id="font-size" value="16" min="8" max="200">
+                </div>
+                <div id="rect-props" class="prop-group hidden">
+                    <div class="prop-header-row">
+                        <div class="prop-label-row">
+                            <label>Arredondamento</label>
+                            <div class="kf-toggle" data-prop="cornerRadius"></div>
+                        </div>
+                        <div class="input-unit-wrapper">
+                            <input type="number" id="corner-radius-input" value="0" min="0" max="100" step="1">
+                            <span class="unit">px</span>
+                        </div>
+                    </div>
+                    <input type="range" id="corner-radius" value="0" min="0" max="100">
+                </div>
+                <div id="icon-props" class="prop-group hidden">
+                    <label>Ícone Selecionado</label>
+                    <div id="icon-display-container"></div>
+                </div>
+
+                <!-- NEW: Layout (Auto Layout) Section -->
+                <div id="layout-props" class="sidebar-section border-top">
+                    <h3>Layout (Auto Layout)</h3>
+                    <div class="prop-group">
+                        <label>Tipo</label>
+                        <div id="layout-toggle-group" class="toggle-group">
+                            <button class="toggle-btn" data-value="none" title="Nenhum">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                            </button>
+                            <button class="toggle-btn" data-value="row" title="Horizontal (Row)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/><path d="M8 8l-4 4 4 4"/><path d="M16 8l4 4-4 4"/></svg>
+                            </button>
+                            <button class="toggle-btn" data-value="column" title="Vertical (Column)">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16"/><path d="M8 8l4-4 4 4"/><path d="M8 16l4 4 4-4"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="prop-group grid-2x2">
+                        <div class="prop-subgroup">
+                            <label>Espaçamento</label>
+                            <input type="number" id="layout-gap" value="0" min="0">
+                        </div>
+                        <div class="prop-subgroup">
+                            <label>Padding</label>
+                            <input type="number" id="layout-padding" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Constraints Section -->
+                <div id="constraints-props" class="sidebar-section border-top">
+                    <h3>Constraints</h3>
+                    <div class="prop-group">
+                        <label>Horizontal</label>
+                        <div id="constraint-h-group" class="toggle-group full-width">
+                            <button class="toggle-btn" data-value="left" title="Esquerda">L</button>
+                            <button class="toggle-btn" data-value="center" title="Centro">C</button>
+                            <button class="toggle-btn" data-value="right" title="Direita">R</button>
+                            <button class="toggle-btn" data-value="both" title="Stretch">S</button>
+                            <button class="toggle-btn" data-value="scale" title="Escala">%</button>
+                        </div>
+                    </div>
+                    <div class="prop-group">
+                        <label>Vertical</label>
+                        <div id="constraint-v-group" class="toggle-group full-width">
+                            <button class="toggle-btn" data-value="top" title="Topo">T</button>
+                            <button class="toggle-btn" data-value="center" title="Centro">C</button>
+                            <button class="toggle-btn" data-value="bottom" title="Base">B</button>
+                            <button class="toggle-btn" data-value="both" title="Stretch">S</button>
+                            <button class="toggle-btn" data-value="scale" title="Escala">%</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Alinhamento</h3>
+                <div class="tool-group alignment-group">
+                    <button class="align-btn" data-align="left" title="Alinhar à Esquerda">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h16"></path></svg>
+                    </button>
+                    <button class="align-btn" data-align="center" title="Alinhar ao Centro (H)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h12M8 6h8M8 18h8"></path></svg>
+                    </button>
+                    <button class="align-btn" data-align="right" title="Alinhar à Direita">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M10 12h10M4 18h16"></path></svg>
+                    </button>
+                    <button class="align-btn" data-align="top" title="Alinhar ao Topo">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M12 4v10M18 4v16"></path></svg>
+                    </button>
+                    <button class="align-btn" data-align="middle" title="Alinhar ao Meio (V)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 8v8M18 8v8"></path></svg>
+                    </button>
+                    <button class="align-btn" data-align="bottom" title="Alinhar à Base">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M12 10v10M18 4v16"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Camadas -->
+            <div class="sidebar-section">
+                <h3>Camadas</h3>
+                <div id="layers-panel" class="layers-panel-container">
+                    <!-- Camadas serão inseridas aqui via JS -->
+                </div>
+            </div>
+        </aside>
+
+        <section class="canvas-container">
+            <!-- Grid floating button (Bottom Left) -->
+            <div id="grid-controls-container" class="bottom-left-controls">
+                <button id="grid-settings-toggle" class="grid-fab glass" title="Visualização do Grid">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+                </button>
+                <div id="grid-settings-popup" class="grid-popup glass hidden">
+                    <div class="popup-header">
+                        <h4>Visualização (Grid)</h4>
+                    </div>
+                    <div class="grid-settings-body">
+                        <div class="prop-group">
+                            <label>Tipo</label>
+                            <select id="grid-type">
+                                <option value="none">Sem Grid</option>
+                                <option value="square">Quadrada</option>
+                                <option value="dots">Pontos</option>
+                                <option value="isometric">Isométrica</option>
+                            </select>
+                        </div>
+                        <div class="prop-group row">
+                            <div class="input-with-label">
+                                <label>Tamanho</label>
+                                <input type="number" id="grid-size" value="25" min="5" max="100">
+                            </div>
+                        </div>
+                        <div class="prop-group">
+                            <label>Opacidade</label>
+                            <input type="range" id="grid-opacity" min="0" max="100" value="20">
+                        </div>
+                        <div class="prop-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="snap-to-grid"> 
+                                Snap to Grid
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- System Toolbar (New Vertical Toolbar) -->
+            <div id="system-toolbar" class="floating-toolbar top-right glass">
+                <button id="undo-btn" class="tool-btn" title="Desfazer (Ctrl+Z)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"></path><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+                </button>
+                <button id="redo-btn" class="tool-btn" title="Refazer (Ctrl+Y/Ctrl+Shift+Z)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"></path><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+                </button>
+                <button id="clear-canvas" class="tool-btn" title="Limpar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                </button>
+                <button id="canvas-settings-toggle" class="tool-btn" title="Configurações do Canvas">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+                <div class="toolbar-divider"></div>
+                <button id="open-lab" class="tool-btn lab-btn" title="Laboratório de Testes (Lab)" onclick="window.location.href='lab/index.html'">
+                    <span style="font-size: 16px;">🧪</span>
+                </button>
+            </div>
+
+            <div id="canvas-settings-popup" class="settings-popup glass hidden">
+                <h3>Configurações do Canvas</h3>
+                <div class="settings-group">
+                    <div class="prop-group row">
+                        <div class="input-with-label">
+                            <label>L (px)</label>
+                            <input type="number" id="canvas-width" value="800" min="100" max="3000">
+                        </div>
+                        <div class="input-with-label">
+                            <label>A (px)</label>
+                            <input type="number" id="canvas-height" value="600" min="100" max="3000">
+                        </div>
+                    </div>
+                    <div class="prop-group">
+                        <label>Presets</label>
+                        <select id="canvas-presets">
+                            <option value="custom">Personalizado</option>
+                            <option value="mobile">Celular (390x844)</option>
+                            <option value="tablet">Tablet (820x1180)</option>
+                            <option value="desktop">Desktop (1440x900)</option>
+                            <option value="square">Quadrado (1080x1080)</option>
+                        </select>
+                    </div>
+                    <div class="prop-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="responsive-code"> 
+                            Código Responsivo (%)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="floating-toolbar main-tools glass">
+                <button class="tool-btn active" data-tool="select" title="Selecionar (V)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path><path d="M13 13l6 6"></path></svg>
+                </button>
+                <button class="tool-btn" data-tool="hand" title="Mão (H ou Espaço)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 1 0-4 0v5m-4 0V4a2 2 0 1 0-4 0v7m-4 0V8a2 2 0 1 0-4 0v9a7 7 0 0 0 7 7h3a1 1 0 0 0 1-1v-4a2 2 0 0 1 2-2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2Z"></path></svg>
+                </button>
+                <div class="toolbar-divider"></div>
+                <button class="tool-btn" data-tool="rect" title="Retângulo (R)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                </button>
+                <button class="tool-btn" data-tool="circle" title="Círculo (O)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+                </button>
+                <button class="tool-btn" data-tool="line" title="Linha (L)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"></line></svg>
+                </button>
+                <button class="tool-btn" data-tool="pencil" title="Lápis (P)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>
+                </button>
+                <button class="tool-btn" data-tool="bezier" title="Caneta Bézier (B)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 20 2-2 5-5 1.5 1.5L11 23l-4-3 1.5-1.5z"></path><path d="M4 11.5c2.3 0 4.2-1.9 4.2-4.2C8.2 4.9 6.3 3 4 3s-4.2 1.9-4.2 4.2c0 2.3 1.9 4.3 4.2 4.3Z"></path><path d="M21 21s-6-3-6-8c0-4 4-7 4-7"></path></svg>
+                </button>
+                <button class="tool-btn" data-tool="edit-points" title="Editar Pontos (E)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19 12h2"></path><path d="M12 19v2"></path><path d="M3 12h2"></path><path d="M12 3v2"></path><path d="m4.9 4.9 1.4 1.4"></path><path d="m17.7 17.7 1.4 1.4"></path><path d="m17.7 6.3 -1.4 1.4"></path><path d="m4.9 19.1 1.4-1.4"></path></svg>
+                </button>
+                <button class="tool-btn" data-tool="text" title="Texto (T)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                </button>
+                <button class="tool-btn" data-tool="icon" title="Ícones (I)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg>
+                </button>
+                <div class="toolbar-divider"></div>
+                <div id="add-component-container" class="toolbar-menu-wrapper">
+                    <button id="add-component-btn" class="tool-btn" title="Adicionar Elemento (+)">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                    <div id="add-component-menu" class="component-submenu glass hidden">
+                        <div class="menu-item" data-component="button" title="Botão">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 12h10"/></svg>
+                            <span>Botão</span>
+                        </div>
+                        <div class="menu-item" data-component="input" title="Campo de Texto">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="8" rx="1"/><path d="M7 12h6"/></svg>
+                            <span>Input</span>
+                        </div>
+                        <div class="menu-item" data-component="checkbox" title="Checkbox">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+                            <span>Checkbox</span>
+                        </div>
+                        <div class="menu-item" data-component="switch" title="Interruptor">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="9" width="16" height="6" rx="3"/><circle cx="15" cy="12" r="2"/></svg>
+                            <span>Switch</span>
+                        </div>
+                        <div class="menu-item" data-component="slider" title="Slider">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16"/><circle cx="8" cy="12" r="3"/></svg>
+                            <span>Slider</span>
+                        </div>
+                        <div class="menu-item" data-component="progress" title="Barra de Progresso">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="18" height="4" rx="2"/><path d="M3 12h10"/></svg>
+                            <span>Progress</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ruler-corner"></div>
+            <div id="ruler-horizontal" class="ruler h-ruler"></div>
+            <div id="ruler-vertical" class="ruler v-ruler"></div>
+            <div class="canvas-wrapper">
+                <canvas id="main-canvas"></canvas>
+            </div>
+
+            <!-- Zoom Controls -->
+            <div class="zoom-controls glass">
+                <button id="zoom-out" class="zoom-btn" title="Zoom Out (Ctrl -)">-</button>
+                <div class="zoom-info">
+                    <span id="zoom-level">100%</span>
+                </div>
+                <button id="zoom-in" class="zoom-btn" title="Zoom In (Ctrl +)">+</button>
+                <div class="zoom-divider"></div>
+                <button id="zoom-reset" class="zoom-btn reset" title="Reset (Ctrl 0)">Reset</button>
+            </div>
+
+            <!-- NEW: Timeline Panel -->
+            <div id="timeline-panel" class="timeline-panel glass collapsed">
+                <div class="timeline-header">
+                    <div class="timeline-controls">
+                        <button id="play-pause-btn" class="control-btn" title="Play (Espaço)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+                        <button id="stop-btn" class="control-btn" title="Parar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+                        </button>
+                        <div class="timeline-timecode">
+                            <span id="current-time-display" class="time-main">0.00s</span>
+                            <span class="time-divider">/</span>
+                            <input type="number" id="duration-input" value="2.0" step="0.1" min="0.1" class="time-duration">s
+                        </div>
+                    </div>
+                    <div class="timeline-toolbar">
+                        <button id="timeline-add-kf" class="btn-kf" title="Keyframe na Seleção">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l10 10-10 10L2 12z"/></svg> 
+                        </button>
+                        <label class="loop-control">
+                            <input type="checkbox" id="loop-btn" checked>
+                            <span>Loop</span>
+                        </label>
+                        <button id="toggle-timeline" class="control-btn" title="Minimizar/Maximizar Timeline">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-labels" id="timeline-labels">
+                        <!-- Nome das camadas aparecerão aqui -->
+                    </div>
+                    <div class="timeline-scroll-container" id="timeline-scroll">
+                        <div class="timeline-grid-wrapper">
+                            <div id="timeline-ruler" class="timeline-ruler"></div>
+                            <div id="timeline-tracks" class="timeline-tracks">
+                                <!-- Trilhas e Keyframes -->
+                            </div>
+                            <div id="timeline-cursor" class="timeline-cursor">
+                                <div class="cursor-head"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside id="right-sidebar" class="sidebar code-sidebar glass">
+            <div id="sidebar-resizer" class="resizer"></div>
+            <div class="sidebar-header-with-action">
+                <button id="toggle-right-sidebar" class="sidebar-toggle" title="Recolher/Expandir (Ctrl+K)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+                <div id="language-toggle-host"></div>
+                <button id="copy-code" class="btn btn-sm btn-primary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copiar
+                </button>
+            </div>
+            <div id="code-container-wrapper" class="code-container">
+                <pre><code id="generated-code" class="language-kotlin">// Desenhe algo para gerar o código...</code></pre>
+            </div>
+        </aside>
+    </main>
+
+    <div id="icon-picker-modal" class="modal-overlay hidden">
+        <div class="modal-content glass icon-picker-content">
+            <div class="modal-header">
+                <div class="modal-header-info">
+                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                   <h3>Selecionar Ícone</h3>
+                </div>
+                <button id="close-icon-picker" class="close-modal">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="icon-search-input" placeholder="Pesquisar ícones (Home, Heart...)" class="glass">
+            </div>
+            <div id="icon-grid" class="icon-grid">
+                <!-- Ícones serão inseridos aqui via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

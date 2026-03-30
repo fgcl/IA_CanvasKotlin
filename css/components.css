@@ -1,0 +1,452 @@
+/* Settings Popup */
+.settings-popup {
+    position: absolute;
+    top: 24px;
+    right: 80px;
+    width: 320px;
+    padding: 24px;
+    z-index: 300;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(20px);
+    animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Shortcuts help */
+.shortcut-hint {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.modal-content {
+    width: 420px;
+    max-width: 90vw;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-color);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: var(--text-color);
+}
+
+.modal-search {
+    margin-bottom: 20px;
+}
+
+.modal-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 12px;
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.icon-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-item.active {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-color);
+}
+
+.icon-item-name {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+/* Toggle Groups (Segmented Control) */
+.toggle-group {
+    display: flex;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 2px;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.toggle-group.full-width {
+    width: 100%;
+}
+
+.toggle-btn {
+    flex: 1;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.toggle-btn:hover {
+    color: var(--text-color);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-btn.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+/* Floating Context Toolbar */
+.floating-context-toolbar {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 2000;
+    transform: translate(-50%, -100%) translateY(-20px);
+    pointer-events: all;
+    animation: toolbarFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+}
+
+@keyframes toolbarFadeIn {
+    from { opacity: 0; transform: translate(-50%, -100%) translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translate(-50%, -100%) translateY(-20px) scale(1); }
+}
+
+.toolbar-main-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+}
+
+.context-submenu {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(30, 41, 59, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 40px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    animation: submenuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-bottom: 4px;
+}
+
+@keyframes submenuPop {
+    from { opacity: 0; transform: translateY(10px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.context-submenu.hidden {
+    display: none;
+}
+
+.submenu-group {
+    display: flex;
+    gap: 4px;
+}
+
+.submenu-divider {
+    width: 1px;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 8px;
+}
+
+.floating-context-toolbar .tool-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 40px;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+
+.floating-context-toolbar .tool-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.floating-context-toolbar .tool-btn.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.floating-context-toolbar .divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 0 2px;
+}
+
+.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+}
+
+/* Horizontal Color Bars */
+.color-preview-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: #000;
+}
+
+.color-bar-menu {
+    padding: 8px 10px;
+}
+
+.color-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.color-swatch-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    flex-shrink: 0;
+}
+
+.color-swatch-btn:hover {
+    transform: scale(1.15);
+}
+
+.color-swatch-btn.more-colors {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font-size: 16px;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.floating-context-toolbar .transparent-swatch, 
+.floating-context-toolbar .transparent-preview {
+    background: #ffffff !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.floating-context-toolbar .transparent-swatch::after, 
+.floating-context-toolbar .transparent-preview::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 140%;
+    height: 1.5px;
+    background: #ef4444;
+    transform: translate(-50%, -50%) rotate(45deg);
+    pointer-events: none;
+}
+
+/* Top-Left FAB & Component Menu */
+.top-left-fab-wrapper {
+    position: fixed;
+    top: 24px;
+    left: 60px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.fab-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: all;
+}
+
+.fab-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-color);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fab-btn.active {
+    background: var(--primary-color);
+    transform: scale(1.1) rotate(45deg);
+}
+
+.component-submenu {
+    display: flex;
+    flex-direction: column;
+    width: 180px;
+    padding: 8px;
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    transform-origin: top left;
+    animation: submenuSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: all;
+}
+
+@keyframes submenuSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-color);
+    transform: translateX(4px);
+}
+
+.menu-item svg {
+    color: var(--primary-color);
+    transition: transform 0.2s ease;
+}
+
+.menu-item:hover svg {
+    transform: scale(1.2);
+    color: var(--primary-hover);
+}

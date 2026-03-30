@@ -1,0 +1,114 @@
+.canvas-container {
+    flex: 1;
+    position: relative;
+    background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.05) 1.5px, transparent 1.5px);
+    background-size: 30px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #0d1117;
+}
+
+.canvas-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#main-canvas {
+    display: block;
+    cursor: crosshair;
+}
+
+/* Rulers */
+.ruler {
+    position: absolute;
+    background: #2b313a;
+    color: #8b949e;
+    font-size: 9px;
+    font-family: 'Fira Code', monospace;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.h-ruler {
+    top: -20px; left: 0; right: 0;
+    height: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.v-ruler {
+    top: 0; left: -20px; bottom: 0;
+    width: 20px;
+    border-right: 1px solid var(--border-color);
+}
+
+.ruler-corner {
+    position: absolute;
+    top: -20px; left: -20px;
+    width: 20px; height: 20px;
+    background: #21262d;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 11;
+}
+
+/* Zoom Controls */
+.zoom-controls {
+    position: absolute;
+    bottom: calc(var(--timeline-offset) + 20px);
+    right: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    z-index: 1000;
+    transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.zoom-btn {
+    width: 28px; height: 28px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.zoom-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+}
+
+.zoom-info {
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 45px;
+    text-align: center;
+}
+
+.zoom-divider {
+    width: 1px; height: 18px;
+    background: rgba(255, 255, 255, 0.15);
+    margin: 0 4px;
+}
+
+.zoom-btn.reset {
+    width: auto;
+    padding: 0 8px;
+    font-size: 12px;
+}

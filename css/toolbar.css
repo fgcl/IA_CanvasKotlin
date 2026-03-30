@@ -1,0 +1,100 @@
+/* Tool Buttons */
+.tool-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.tool-btn {
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-muted);
+}
+
+.tool-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+}
+
+.tool-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-hover);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* Floating Toolbar */
+.floating-toolbar {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xs);
+    display: flex;
+    gap: 2px;
+    z-index: 2500;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-toolbar.vertical {
+    flex-direction: column;
+    left: 16px;
+    top: 16px;
+    transform: none;
+}
+
+.floating-toolbar.top-right {
+    right: calc(var(--right-sidebar-width, 0px) + 16px);
+    left: auto;
+    transform: none;
+    flex-direction: row;
+}
+
+.toolbar-menu-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.floating-toolbar .component-submenu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    left: auto;
+    transform: none;
+    z-index: 3000;
+}
+
+.floating-toolbar .tool-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+}
+
+.floating-toolbar .tool-btn.active {
+    background: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-color);
+    margin: 8px 4px;
+}
