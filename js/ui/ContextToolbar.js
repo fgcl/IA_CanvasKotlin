@@ -1,7 +1,11 @@
+import { AnimationEngine } from '../core/AnimationEngine.js';
+
 export class ContextToolbar {
-    constructor(state, onAction) {
+    constructor(state, onAction, fillColorPicker, strokeColorPicker) {
         this.state = state;
         this.onAction = onAction; 
+        this.fillColorPicker = fillColorPicker;
+        this.strokeColorPicker = strokeColorPicker;
         this.quickColors = ['#000000', '#ffffff', '#ef4444', '#22c55e', '#3b82f6'];
         this.element = this.createToolbar();
         document.body.appendChild(this.element);
@@ -142,7 +146,7 @@ export class ContextToolbar {
                 this.state.saveState();
                 this.state.selectedShapes.forEach(s => {
                     const animated = (s.keyframes && Object.keys(s.keyframes).length > 0) ? 
-                        this.state.animation.animateShape(s, this.state.currentTime) : s;
+                        AnimationEngine.animateShape(s, this.state.currentTime) : s;
 
                     const prop = type === 'fill' ? 'fillColor' : 'strokeColor';
                     const useProp = type === 'fill' ? 'useFill' : 'useStroke';
@@ -164,16 +168,19 @@ export class ContextToolbar {
         });
 
         div.querySelectorAll('.more-colors').forEach(btn => {
-            btn.onclick = () => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
                 const type = btn.dataset.type;
-                // Focus sidebar picker
-                const pickerId = type === 'fill' ? 'fill-color-picker' : 'stroke-color-picker';
-                const pickerContainer = document.getElementById(pickerId);
-                if (pickerContainer) {
-                    pickerContainer.scrollIntoView({ behavior: 'smooth' });
-                    // Maybe trigger the click on the sidebar picker's trigger
-                    const trigger = pickerContainer.querySelector('.color-trigger');
-                    if (trigger) trigger.click();
+                const picker = type === 'fill' ? this.fillColorPicker : this.strokeColorPicker;
+                if (picker && this.state.selectedShapes.length > 0) {
+                    const first = this.state.selectedShapes[0];
+                    const currentColor = type === 'fill' ? 
+                        (first.useFill === false ? 'transparent' : (first.fillColor || '#000000')) :
+                        (first.useStroke === false ? 'transparent' : (first.strokeColor || '#000000'));
+                    
+                    picker.setColor(currentColor);
+                    const rect = btn.getBoundingClientRect();
+                    picker.openAt(rect);
                 }
                 this.hideSubmenus();
             };

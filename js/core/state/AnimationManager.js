@@ -43,18 +43,28 @@ export class AnimationManager {
 
     syncKeyframes(shape, properties, oldValues = {}) {
         if (!shape.keyframes) shape.keyframes = {};
-        const epsilon = 0.05;
+        // Use a more realistic epsilon for UI interactions (50ms)
+        const epsilon = 50; 
         
         properties.forEach(prop => {
-            const hasKeyframing = shape.keyframes[prop] && shape.keyframes[prop].length > 0;
-            const existingIdx = hasKeyframing ? 
-                shape.keyframes[prop].findIndex(kf => Math.abs(kf.time - this.currentTime) < epsilon) : -1;
+            if (shape[prop] === undefined) return;
+
+            const propKeyframes = shape.keyframes[prop] || [];
+            const hasKeyframing = propKeyframes.length > 0;
+            
+            // Check if we are close to an existing keyframe
+            const existingIdx = propKeyframes.findIndex(kf => Math.abs(kf.time - this.currentTime) < epsilon);
 
             if (existingIdx !== -1) {
-                shape.keyframes[prop][existingIdx].value = shape[prop];
-            } else if (this.currentTime > epsilon) {
-                if (!hasKeyframing) {
-                    // Use the old value for time 0 if provided, otherwise fallback to current
+                // Update existing keyframe value
+                propKeyframes[existingIdx].value = shape[prop];
+                // Optionally update the time to the current time for precise snapping
+                propKeyframes[existingIdx].time = this.currentTime;
+                propKeyframes.sort((a, b) => a.time - b.time);
+            } else if (this.currentTime > epsilon || (this.currentTime <= epsilon && hasKeyframing)) {
+                // If not at start, and no keyframe exists at current time, create one
+                // But first, ensure there is a keyframe at time 0
+                if (!hasKeyframing && this.currentTime > epsilon) {
                     const baseValue = oldValues[prop] !== undefined ? oldValues[prop] : shape[prop];
                     this.addKeyframe(shape, prop, 0, baseValue);
                 }

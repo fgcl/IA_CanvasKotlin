@@ -5,12 +5,14 @@ import { AnimationEngine } from './AnimationEngine.js';
 import { ComponentRenderer } from './ComponentRenderer.js';
 import { HelperRenderer } from './HelperRenderer.js';
 import { ShapeNormalizer } from './state/ShapeNormalizer.js';
+import { SnapEngine } from './SnapEngine.js';
 
 export class Renderer {
     constructor(canvas, state) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.state = state;
+        this.imageCache = new Map();
     }
 
     clear() {
@@ -41,24 +43,16 @@ export class Renderer {
         
         // Unselected Shapes
         shapes.forEach(shape => {
-            if (!shape) return;
-            const isBeingManipulated = isDrawing && selectedShapes.includes(shape);
-            const displayShape = (shape.keyframes && Object.keys(shape.keyframes).length > 0 && !isBeingManipulated) ? 
-                AnimationEngine.animateShape(shape, state.currentTime) : shape;
-
-            if (!selectedShapes.includes(shape) && displayShape.visible !== false && !displayShape.parentId) {
-                this.drawShape(displayShape);
+            if (!shape || shape.parentId) return;
+            if (!selectedShapes.includes(shape) && shape.visible !== false) {
+                this.drawShape(shape);
             }
         });
 
         // Selected Shapes (In front)
         selectedShapes.forEach(shape => {
             if (!shape) return;
-            const isBeingManipulated = isDrawing && selectedShapes.includes(shape);
-            const displayShape = (shape.keyframes && Object.keys(shape.keyframes).length > 0 && !isBeingManipulated) ? 
-                AnimationEngine.animateShape(shape, state.currentTime) : shape;
-
-            if (displayShape.visible !== false) {
+            if (shape.visible !== false) {
                 const isDragging = isDrawing && (currentTool === 'select' || state.activeResizeHandle);
                 const offsetX = isDragging ? (state.snapOffset?.x || 0) : 0;
                 const offsetY = isDragging ? (state.snapOffset?.y || 0) : 0;
@@ -69,9 +63,12 @@ export class Renderer {
                     this.ctx.translate(abs.x - shape.x, abs.y - shape.y);
                 }
                 
-                this.drawShape(displayShape, isBezierDrawing || displayShape.type === 'bezier' || currentTool === 'edit-points', offsetX, offsetY);
+                this.drawShape(shape, isBezierDrawing || shape.type === 'bezier' || currentTool === 'edit-points', offsetX, offsetY);
                 this.ctx.restore();
                 
+                // For highlights, we need the animated state too
+                const displayShape = (shape.keyframes && Object.keys(shape.keyframes).length > 0) ? 
+                    AnimationEngine.animateShape(shape, state.currentTime) : shape;
                 HelperRenderer.drawSelectionHighlight(displayShape, state, this.ctx, offsetX, offsetY);
             }
         });
@@ -85,7 +82,14 @@ export class Renderer {
 
         // Bezier Rubber-Band Preview
         if (isBezierDrawing && currentShape && currentShape.type === 'bezier' && state.mousePos) {
-            this._drawBezierPreview(this.ctx, currentShape, state.mousePos);
+            const snapped = SnapEngine.snapCoords(state.mousePos.x, state.mousePos.y, state, state.transformManager);
+            this._drawBezierPreview(this.ctx, currentShape, snapped);
+        }
+
+        // Creation Cursor Preview (Magnetizing before first click)
+        if (isCreationTool && !isDrawing && !isBezierDrawing && state.mousePos) {
+            const snapped = SnapEngine.snapCoords(state.mousePos.x, state.mousePos.y, state, state.transformManager);
+            this._drawCreationCursor(this.ctx, snapped);
         }
         
         // Helpers (Marquee, Snaps)
@@ -102,15 +106,19 @@ export class Renderer {
     drawShape(rawShape, isDrawingHelpers = false, offsetX = 0, offsetY = 0) {
         if (!rawShape) return;
         
+        // --- ALWAYS ANIMATE IN RENDERER TO MATCH INTERACTION (isPointInShape) ---
+        const animatedShape = (rawShape.keyframes && Object.keys(rawShape.keyframes).length > 0) ? 
+            AnimationEngine.animateShape(rawShape, this.state.currentTime) : rawShape;
+
         // Normalize the shape before rendering (Excalidraw pattern)
-        const shape = ShapeNormalizer.normalize(rawShape);
+        const shape = ShapeNormalizer.normalize(animatedShape);
         const ctx = this.ctx;
 
         ctx.save();
         ctx.translate(offsetX, offsetY);
         
         // Global Style Reset (Prevents pollution)
-        ctx.globalAlpha = shape.opacity || 1;
+        ctx.globalAlpha = shape.opacity !== undefined && shape.opacity !== null ? shape.opacity : 1;
         ctx.setLineDash([]);
         ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
         
@@ -131,6 +139,7 @@ export class Renderer {
             case 'icon': this._drawIcon(ctx, shape); break;
             case 'pencil': this._drawPencil(ctx, shape); break;
             case 'group': this._drawGroup(ctx, shape); break;
+            case 'image': this._drawImage(ctx, shape); break;
             default:
                 if (['button', 'input', 'checkbox', 'switch', 'slider', 'progress'].includes(shape.type)) {
                     ComponentRenderer.draw(shape, ctx);
@@ -214,7 +223,35 @@ export class Renderer {
         ctx.restore();
     }
 
-    _drawBezierPreview(ctx, shape, mousePos) {
+    _drawImage(ctx, s) {
+        if (!s.src) return;
+        
+        let img = this.imageCache.get(s.src);
+        if (!img) {
+            img = new Image();
+            img.src = s.src;
+            img.onload = () => {
+                this.imageCache.set(s.src, img);
+                // Trigger redraw via state's notify mechanisms if available,
+                // or just wait for next interaction/frame.
+            };
+            this.imageCache.set(s.src, 'loading');
+            return;
+        }
+
+        if (img === 'loading') return;
+
+        ctx.save();
+        if (s.useStroke && s.strokeWidth > 0) {
+            ctx.strokeStyle = s.strokeColor;
+            ctx.lineWidth = s.strokeWidth;
+            ctx.strokeRect(s.x, s.y, s.width, s.height);
+        }
+        ctx.drawImage(img, s.x, s.y, s.width, s.height);
+        ctx.restore();
+    }
+
+    _drawBezierPreview(ctx, shape, snappedMouse) {
         if (!shape.points || shape.points.length === 0) return;
         const last = shape.points[shape.points.length - 1];
         
@@ -224,14 +261,29 @@ export class Renderer {
         ctx.strokeStyle = '#03DAC688';
         ctx.lineWidth = 1.5;
         ctx.moveTo(last.x, last.y);
-        ctx.lineTo(mousePos.x, mousePos.y);
+        ctx.lineTo(snappedMouse.x, snappedMouse.y);
         ctx.stroke();
         
         // Draw a small dot at mouse to show where point will be
         ctx.beginPath();
         ctx.setLineDash([]);
         ctx.fillStyle = '#03DAC6';
-        ctx.arc(mousePos.x, mousePos.y, 4, 0, Math.PI * 2);
+        ctx.arc(snappedMouse.x, snappedMouse.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    _drawCreationCursor(ctx, snapped) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = '#03DAC6aa';
+        ctx.lineWidth = 1;
+        ctx.arc(snapped.x, snapped.y, 5, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.fillStyle = '#03DAC6';
+        ctx.arc(snapped.x, snapped.y, 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }

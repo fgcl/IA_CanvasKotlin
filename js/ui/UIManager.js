@@ -131,12 +131,15 @@ export class UIManager {
         const responsiveCodeToggle = document.getElementById('responsive-code');
 
         if (settingsToggle) settingsToggle.addEventListener('click', (e) => {
-            settingsPopup.classList.toggle('hidden'); e.stopPropagation();
+            const isOpen = settingsPopup.classList.toggle('hidden');
+            settingsToggle.classList.toggle('active', !isOpen);
+            e.stopPropagation();
         });
 
         document.addEventListener('click', (e) => {
             if (settingsPopup && !settingsPopup.contains(e.target) && e.target !== settingsToggle && !settingsToggle.contains(e.target)) {
                 settingsPopup.classList.add('hidden');
+                settingsToggle.classList.remove('active');
             }
         });
 
@@ -214,7 +217,9 @@ export class UIManager {
     bindZoomAndToolbar() {
         const zoomIn = document.getElementById('zoom-in');
         const zoomOut = document.getElementById('zoom-out');
-        const zoomReset = document.getElementById('zoom-reset');
+        const zoomResetArea = document.querySelector('.clickable-zoom');
+        const layersToggle = document.getElementById('toggle-layers-btn');
+        const layersPopup = document.getElementById('layers-popup');
         const clearBtn = document.getElementById('clear-canvas');
         const copyBtn = document.getElementById('copy-code');
         const undoBtn = document.getElementById('undo-btn');
@@ -223,13 +228,25 @@ export class UIManager {
 
         if (zoomIn) zoomIn.addEventListener('click', () => { this.state.zoom = Math.min(20, this.state.zoom * 1.2); this.updateZoomUI(); this.redraw(); });
         if (zoomOut) zoomOut.addEventListener('click', () => { this.state.zoom = Math.max(0.05, this.state.zoom / 1.2); this.updateZoomUI(); this.redraw(); });
-        if (zoomReset) zoomReset.addEventListener('click', () => {
+        
+        if (zoomResetArea) zoomResetArea.addEventListener('click', () => {
             const container = document.querySelector('.canvas-container');
             this.state.zoom = 1;
             this.state.panX = (container.clientWidth - this.state.canvasSize.width) / 2;
             this.state.panY = (container.clientHeight - this.state.canvasSize.height) / 2;
             this.updateZoomUI(); this.redraw();
         });
+
+        if (layersToggle && layersPopup) {
+            layersToggle.addEventListener('click', (e) => {
+                layersPopup.classList.toggle('hidden');
+                layersToggle.classList.toggle('active');
+                e.stopPropagation();
+            });
+
+            // Prevent clicks inside the popup from bubbling to any potential outside close listeners
+            layersPopup.addEventListener('click', (e) => e.stopPropagation());
+        }
 
         if (clearBtn) clearBtn.addEventListener('click', () => { this.state.clear(); this.renderer.clear(); this.updateCode(); this.redraw(); });
         if (copyBtn) copyBtn.addEventListener('click', () => {
@@ -269,7 +286,7 @@ export class UIManager {
                 }
 
                 if (this.state.selectedShapes.length > 0) {
-                    this.state.deleteSelectedShapes();
+                    this.state.deleteSelected();
                     this.updateCode(); this.redraw();
                 }
             }

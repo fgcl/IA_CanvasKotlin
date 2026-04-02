@@ -112,6 +112,12 @@ export class ShapeFactory {
                 shape.strokeColor = 'transparent';
                 shape.strokeWidth = 0;
                 break;
+            case 'image':
+                shape.src = shape.src || '';
+                shape.aspectRatio = shape.aspectRatio || 1;
+                shape.useStroke = shape.useStroke || false;
+                shape.strokeWidth = shape.strokeWidth || 0;
+                break;
         }
     }
 }

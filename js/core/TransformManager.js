@@ -7,11 +7,14 @@ export class TransformManager {
     }
 
     getAbsoluteCoords(shape) {
-        if (!shape.parentId) return { x: shape.x, y: shape.y };
-        const parent = this.state.findShapeById(shape.parentId);
-        if (!parent) return { x: shape.x, y: shape.y };
+        if (!shape.parentId) return { x: (shape.x || 0), y: (shape.y || 0) };
+        
+        // Use the active/animated state of the parent for absolute positioning
+        const parent = this.state.getActiveShape(shape.parentId);
+        if (!parent) return { x: (shape.x || 0), y: (shape.y || 0) };
+        
         const pAbs = this.getAbsoluteCoords(parent);
-        return { x: pAbs.x + shape.x, y: pAbs.y + shape.y };
+        return { x: pAbs.x + (shape.x || 0), y: pAbs.y + (shape.y || 0) };
     }
 
     getShapeBounds(shape) {
@@ -23,7 +26,7 @@ export class TransformManager {
             return { x: x, y: y, w: (shape.width || 0), h: (shape.height || 0) };
         }
 
-        if (shape.type === 'rect') {
+        if (shape.type === 'rect' || shape.type === 'image') {
             return { 
                 x: Math.min(x, x + (shape.width || 0)), 
                 y: Math.min(y, y + (shape.height || 0)), 
@@ -54,8 +57,9 @@ export class TransformManager {
             return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
         }
         if (shape.type === 'text') {
-            const width = (shape.text || '').length * (shape.fontSize || 16) * 0.6;
-            return { x: x, y: y, w: width, h: (shape.fontSize || 16) };
+            const fs = shape.fontSize || 16;
+            const width = (shape.text || '').length * fs * 0.6;
+            return { x: x, y: y, w: width, h: fs };
         }
         if (shape.type === 'icon') {
             return { x: x, y: y, w: shape.width || 48, h: shape.height || 48 };
@@ -113,7 +117,7 @@ export class TransformManager {
 
         this.state.activeSnaps = { x: [], y: [] };
         
-        const dimensionTypes = ['rect', 'icon', 'text', 'circle', 'button', 'input', 'checkbox', 'switch', 'slider', 'progress'];
+        const dimensionTypes = ['rect', 'image', 'icon', 'text', 'circle', 'button', 'input', 'checkbox', 'switch', 'slider', 'progress'];
         if (dimensionTypes.includes(shape.type)) {
             const isL = handleId.includes('l') || handleId === 'w';
             const isR = handleId.includes('r') || handleId === 'e';
@@ -138,6 +142,13 @@ export class TransformManager {
             const snapThreshold = (this.state.snapThreshold || 8) / this.state.zoom;
 
             const applySnap = (val, axisHandles, isAxisX) => {
+                // 1. Grid snapping (Priority)
+                if (this.state.snapToGrid && this.state.gridType !== 'none') {
+                    const snapped = SnapEngine.snapPoint(isAxisX ? val : 0, isAxisX ? 0 : val, this.state);
+                    return isAxisX ? snapped.x : snapped.y;
+                }
+
+                // 2. Smart object snapping
                 const snap = SnapEngine.findBestSnap([val], isAxisX ? targets.x : targets.y, this.state, snapThreshold);
                 if (snap) {
                     this.state.activeSnaps[isAxisX ? 'x' : 'y'].push(SnapEngine.calculateSnapRange(snap.value, isAxisX ? 'x' : 'y', shape, this.state, this));
@@ -169,8 +180,8 @@ export class TransformManager {
             }
 
             // Proportional Lock (Applied AFTER snapping to keep it precise)
-            if (shape.type === 'icon' || shape.type === 'circle' || shiftKey) {
-                const ratio = oldW / oldH || 1;
+            if (shape.type === 'image' || shape.type === 'icon' || shape.type === 'circle' || shiftKey) {
+                const ratio = shape.aspectRatio || (oldW / oldH) || 1;
                 if (isL || isR) {
                     newH = newW / ratio;
                     if (isT) newY = oldY - (newH - oldH);
@@ -180,9 +191,18 @@ export class TransformManager {
                 }
             }
 
-            shape.x = newX; shape.y = newY; shape.width = newW; shape.height = newH;
+            shape.x = newX; shape.y = newY; 
             
-            this.state.syncKeyframes(shape, ['x', 'y', 'width', 'height']);
+            if (shape.type === 'text') {
+                shape.fontSize = Math.max(1, newH);
+                // Width is calculated based on fontSize
+                shape.width = (shape.text || '').length * shape.fontSize * 0.6;
+                shape.height = shape.fontSize;
+                this.state.syncKeyframes(shape, ['x', 'y', 'fontSize', 'width', 'height']);
+            } else {
+                shape.width = newW; shape.height = newH;
+                this.state.syncKeyframes(shape, ['x', 'y', 'width', 'height']);
+            }
             if (shape.children) LayoutEngine.applyConstraints(shape, oldW, oldH, this);
             if (shape.layout?.type !== 'none') LayoutEngine.applyLayout(shape);
         } else {
@@ -191,26 +211,47 @@ export class TransformManager {
     }
 
     resizeGeneric(shape, handleId, dx, dy) {
+        const snap = (x, y) => SnapEngine.snapCoords(x, y, this.state, this, [shape]);
+        
         if (shape.type === 'group') {
             const oldW = shape.width, oldH = shape.height;
-            if (handleId.includes('l') || handleId === 'w') { shape.x += dx; shape.width -= dx; }
-            if (handleId.includes('r')) { shape.width += dx; }
-            if (handleId.includes('t')) { shape.y += dy; shape.height -= dy; }
-            if (handleId.includes('b')) { shape.height += dy; }
+            let nx = shape.x + dx, ny = shape.y + dy;
+            let nw = shape.width, nh = shape.height;
+
+            if (handleId.includes('l') || handleId === 'w') { 
+                const s = snap(nx, ny);nx = s.x; dx = nx - shape.x; nw -= dx;
+            }
+            if (handleId.includes('r')) { 
+                const s = snap(nx + nw + dx, ny); nw = s.x - nx; 
+            }
+            if (handleId.includes('t')) { 
+                const s = snap(nx, ny); ny = s.y; dy = ny - shape.y; nh -= dy;
+            }
+            if (handleId.includes('b')) { 
+                const s = snap(nx, ny + nh + dy); nh = s.y - ny;
+            }
             
-            // Safety to prevent negative bounds
-            shape.width = Math.max(1, shape.width);
-            shape.height = Math.max(1, shape.height);
+            shape.x = nx; shape.y = ny;
+            shape.width = Math.max(1, nw);
+            shape.height = Math.max(1, nh);
 
             this.state.syncKeyframes(shape, ['x', 'y', 'width', 'height']);
             LayoutEngine.applyConstraints(shape, oldW, oldH, this);
         } else if (shape.type === 'circle') {
-             if (handleId.includes('l')) { shape.width -= dx; } else if (handleId.includes('r')) { shape.width += dx; }
-             if (handleId.includes('t')) { shape.height -= dy; } else if (handleId.includes('b')) { shape.height += dy; }
+             let nw = shape.width, nh = shape.height;
+             if (handleId.includes('l')) { nw -= dx; } else if (handleId.includes('r')) { nw += dx; }
+             if (handleId.includes('t')) { nh -= dy; } else if (handleId.includes('b')) { nh += dy; }
+             // Circles usually snap via dimensionTypes but resizeGeneric is fallback
+             shape.width = nw; shape.height = nh;
              this.state.syncKeyframes(shape, ['width', 'height']);
         } else if (shape.type === 'line') {
-            if (['tl', 't', 'l', 'w', 'bl'].includes(handleId)) { shape.x += dx; shape.y += dy; } 
-            else { shape.endX += dx; shape.endY += dy; }
+            if (['tl', 't', 'l', 'w', 'bl'].includes(handleId)) { 
+                const s = snap(shape.x + dx, shape.y + dy);
+                shape.x = s.x; shape.y = s.y; 
+            } else { 
+                const s = snap(shape.endX + dx, shape.endY + dy);
+                shape.endX = s.x; shape.endY = s.y; 
+            }
             this.state.syncKeyframes(shape, ['x', 'y', 'endX', 'endY']);
         }
     }
@@ -246,16 +287,23 @@ export class TransformManager {
 
         // Move all shapes silently first
         shapes.forEach(s => this.moveShapeSilent(s, dx, dy));
-        shapes.forEach(s => this.state.syncKeyframes(s, ['x', 'y']));
 
-        // Global Object Snapping (Figma-like Collective Snapping)
-        if (!this.state.snapToGrid) {
+        // Global Grid Snapping
+        if (this.state.snapToGrid && this.state.gridType !== 'none') {
+            const bounds = this.getSelectionBoundsFor(shapes);
+            const snapped = SnapEngine.snapPoint(bounds.x, bounds.y, this.state);
+            const snapDX = snapped.x - bounds.x;
+            const snapDY = snapped.y - bounds.y;
+            shapes.forEach(s => this.moveShapeSilent(s, snapDX, snapDY));
+            this.state.activeSnaps = { x: [], y: [] }; // Grid usually doesn't show guide lines
+        } else {
+            // Smart Object Snapping (Figma-like Collective Snapping)
             this.state.activeSnaps = { x: [], y: [] };
             
             // For collective snapping, we use the bounding box of the whole selection
             const bounds = this.getSelectionBoundsFor(shapes);
             const candidates = SnapEngine.getSnapPoints(bounds);
-            const targets = SnapEngine.getSnapTargets(shapes.length === 1 ? shapes[0] : null, this.state, this);
+            const targets = SnapEngine.getSnapTargets(shapes, this.state, this);
 
             const snapX = SnapEngine.findBestSnap(candidates.x, targets.x, this.state);
             if (snapX) {
@@ -269,6 +317,8 @@ export class TransformManager {
                 this.state.activeSnaps.y.push(SnapEngine.calculateSnapRange(snapY.value, 'y', shapes[0], this.state, this));
             }
         }
+        
+        shapes.forEach(s => this.state.syncKeyframes(s, ['x', 'y']));
     }
 
     getSelectionBoundsFor(shapes) {

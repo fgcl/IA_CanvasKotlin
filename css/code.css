@@ -26,9 +26,9 @@
 }
 
 .lang-btn.active {
-    background: #6200EE;
+    background: linear-gradient(135deg, var(--primary-color), #4f46e5);
     color: white;
-    box-shadow: 0 2px 8px rgba(98, 0, 238, 0.4);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .sidebar-header-with-action {

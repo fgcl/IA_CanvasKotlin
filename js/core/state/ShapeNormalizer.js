@@ -53,6 +53,10 @@ export class ShapeNormalizer {
             case 'group':
                 normalized.children = Array.isArray(shape.children) ? shape.children.map(c => this.normalize(c)) : [];
                 break;
+            case 'image':
+                normalized.src = shape.src || '';
+                normalized.aspectRatio = Number(shape.aspectRatio) || 1;
+                break;
         }
 
         return normalized;

@@ -12,8 +12,11 @@ export class KeyboardHandler {
             e.preventDefault();
         }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
-            state.paste();
-            redraw(); updateCode(); e.preventDefault();
+            if (state.clipboard && state.clipboard.length > 0) {
+                state.paste();
+                redraw(); updateCode(); e.preventDefault();
+            }
+            // If clipboard is empty, let it bubble to the window 'paste' event
         }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
             if (e.shiftKey) {
@@ -47,12 +50,13 @@ export class KeyboardHandler {
         }
 
         const toolMap = { 'h': 'hand', 'v': 'select', 'e': 'edit-points', 't': 'text', 'r': 'rect', 'o': 'circle', 'l': 'line', 'p': 'bezier', 'i': 'icon' };
-        if (toolMap[e.key.toLowerCase()]) {
+        const isTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+        if (!isTyping && toolMap[e.key.toLowerCase()]) {
             const tool = toolMap[e.key.toLowerCase()];
             state.setTool(tool); toolbar.updateActive(tool); redraw();
         }
 
-        if (e.key === ' ' && !e.repeat) {
+        if (e.key === ' ' && !e.repeat && !isTyping) {
             state.previousTool = state.currentTool;
             state.setTool('hand'); toolbar.updateActive('hand'); redraw();
         }

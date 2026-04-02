@@ -150,5 +150,48 @@ export class ShapeManager {
         this.state.shapes.push(...copies);
         this.state.selectedShapes = copies;
     }
+
+    async addImage(fileOrUrl, x, y) {
+        let src = fileOrUrl;
+        if (fileOrUrl instanceof File) {
+            src = await this._readFileAsDataURL(fileOrUrl);
+        }
+
+        const img = new Image();
+        img.src = src;
+        await new Promise(resolve => img.onload = resolve);
+
+        const aspectRatio = img.width / img.height;
+        let width = img.width;
+        let height = img.height;
+
+        // Limit size but keep aspect ratio
+        if (width > 400 || height > 400) {
+            if (aspectRatio > 1) {
+                width = 400;
+                height = 400 / aspectRatio;
+            } else {
+                height = 400;
+                width = 400 * aspectRatio;
+            }
+        }
+
+        const shape = ShapeFactory.create('image', {
+            src, x, y, width, height, aspectRatio,
+            name: 'Imagem ' + (this.state.shapes.filter(s => s.type === 'image').length + 1)
+        }, this.state);
+
+        this.addShape(shape);
+        return shape;
+    }
+
+    _readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
 }
 

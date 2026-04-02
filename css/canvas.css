@@ -94,11 +94,16 @@
     border-color: var(--primary-color);
 }
 
-.zoom-info {
-    font-size: 13px;
-    font-weight: 500;
-    min-width: 45px;
-    text-align: center;
+.zoom-info.clickable-zoom {
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.zoom-info.clickable-zoom:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--primary-color);
 }
 
 .zoom-divider {
@@ -107,8 +112,29 @@
     margin: 0 4px;
 }
 
-.zoom-btn.reset {
-    width: auto;
-    padding: 0 8px;
-    font-size: 12px;
+/* Layers Popup */
+.layers-popup {
+    position: absolute;
+    bottom: calc(var(--timeline-offset) + 60px);
+    right: 24px;
+    width: 280px;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+    z-index: 2000;
+    transform-origin: bottom right;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.layers-popup.hidden {
+    display: none;
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+}
+
+.layers-panel-container {
+    max-height: 350px;
 }

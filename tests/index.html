@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA_CanvasKotlin Unit Tests</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #121212; color: #E0E0E0; padding: 2rem; }
+        h1 { color: #BB86FC; }
+        .test-result { margin-bottom: 1rem; padding: 1rem; border-radius: 8px; border-left: 5px solid; background: #1E1E1E; }
+        .success { border-left-color: #03DAC6; }
+        .failure { border-left-color: #CF6679; }
+        pre { background: #000; padding: 1rem; border-radius: 4px; overflow-x: auto; font-family: 'Fira Code', monospace; }
+        .summary { font-size: 1.2rem; margin-top: 2rem; padding: 1rem; background: #2C2C2C; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 IA_CanvasKotlin Tests</h1>
+    <div id="test-container">Running tests...</div>
+    <div id="summary" class="summary"></div>
+
+    <script type="module">
+        import { runCodeGeneratorTests } from './CodeGenerator.test.js';
+        import { runAnimationEngineTests } from './AnimationEngine.test.js';
+        import { runAnimationManagerTests } from './AnimationManager.test.js';
+        import { runAnimationGroupsTests } from './AnimationGroups.test.js';
+
+        async function runTests() {
+            const container = document.getElementById('test-container');
+            const summaryContainer = document.getElementById('summary');
+            container.innerHTML = '';
+            
+            let passed = 0;
+            let failed = 0;
+
+            const results = [];
+            const addResult = (name, ok, error) => {
+                const div = document.createElement('div');
+                div.className = `test-result ${ok ? 'success' : 'failure'}`;
+                div.innerHTML = `<strong>${ok ? '✅' : '❌'} ${name}</strong>`;
+                if (error) {
+                    div.innerHTML += `<pre>${error.stack || error}</pre>`;
+                    failed++;
+                } else {
+                    passed++;
+                }
+                container.appendChild(div);
+            };
+
+            const assert = (condition, message) => {
+                if (!condition) throw new Error(message || "Assertion failed");
+            };
+
+            // Test execution
+            try {
+                // Code Generator
+                const cgResults = await runCodeGeneratorTests(assert);
+                cgResults.forEach(r => addResult(`CodeGenerator: ${r.name}`, r.ok, r.error));
+
+                // Animation Engine
+                const aeResults = await runAnimationEngineTests(assert);
+                aeResults.forEach(r => addResult(`AnimationEngine: ${r.name}`, r.ok, r.error));
+
+                // Animation Manager
+                const amResults = await runAnimationManagerTests(assert);
+                amResults.forEach(r => addResult(`AnimationManager: ${r.name}`, r.ok, r.error));
+
+                // Animation Groups
+                const agResults = await runAnimationGroupsTests(assert);
+                agResults.forEach(r => addResult(`AnimationGroups: ${r.name}`, r.ok, r.error));
+            } catch (e) {
+                addResult("Global Test Runner Error", false, e);
+            }
+
+            summaryContainer.innerHTML = `Total: ${passed + failed} | Passed: <span style="color: #03DAC6">${passed}</span> | Failed: <span style="color: #CF6679">${failed}</span>`;
+        }
+
+        runTests();
+    </script>
+</body>
+</html>

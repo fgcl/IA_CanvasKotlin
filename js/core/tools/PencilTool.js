@@ -25,11 +25,15 @@ export class PencilTool extends BaseTool {
 
     onMouseUp(e, coords) {
         if (this.state.isDrawing && this.state.currentShape) {
-            this.state.addShape(this.state.currentShape);
-            this.state.selectedShapes = [this.state.currentShape];
+            // Only add if we have at least 3 points (prevent click-spots)
+            if (this.state.currentShape.points.length > 2) {
+                this.state.addShape(this.state.currentShape);
+                this.state.selectedShapes = [this.state.currentShape];
+                this.updateCode();
+            }
         }
         this.state.isDrawing = false;
         this.state.currentShape = null;
-        this.updateCode();
+        this.redraw();
     }
 }

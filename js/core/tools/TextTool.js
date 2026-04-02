@@ -1,4 +1,5 @@
 import { BaseTool } from './BaseTool.js';
+import { SnapEngine } from '../SnapEngine.js';
 
 export class TextTool extends BaseTool {
     constructor(state, canvas, renderer, propertyEditor, updateCode, redraw, textEditor) {
@@ -7,10 +8,11 @@ export class TextTool extends BaseTool {
     }
 
     onMouseDown(e, coords) {
+        const snapped = SnapEngine.snapCoords(coords.x, coords.y, this.state, this.state.transformManager);
         const textShape = {
             type: 'text',
-            x: coords.x,
-            y: coords.y,
+            x: snapped.x,
+            y: snapped.y,
             text: 'Texto',
             fontSize: 20,
             fontFamily: 'Arial',

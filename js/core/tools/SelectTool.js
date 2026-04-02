@@ -4,6 +4,9 @@ export class SelectTool extends BaseTool {
     constructor(...args) {
         super(...args);
         this.isDragging = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.dragInitialShapes = [];
     }
 
     onMouseDown(e, coords) {
@@ -25,6 +28,12 @@ export class SelectTool extends BaseTool {
         
         if (shape) {
             this.isDragging = true;
+            this.dragStartX = coords.x;
+            this.dragStartY = coords.y;
+            this.dragInitialShapes = this.state.selectedShapes.map(s => ({
+                shape: s, x: s.x, y: s.y, w: s.width, h: s.height, ex: s.endX, ey: s.endY,
+                pts: s.points ? JSON.parse(JSON.stringify(s.points)) : null
+            }));
             this.propertyEditor.update(shape);
             this.state.saveState();
         } else if (!isMultiSelect) {
@@ -35,6 +44,8 @@ export class SelectTool extends BaseTool {
     onMouseMove(e, coords) {
         if (this.state.activeResizeHandle) {
             this.state.isDrawing = true;
+            // Incremental resize is still needed as resizeShape is complex, 
+            // but we use raw coords to avoid drift
             const dx = coords.x - this.state.startX;
             const dy = coords.y - this.state.startY;
             this.state.resizeShape(this.state.selectedShapes[0], this.state.activeResizeHandle, dx, dy, e.shiftKey);
@@ -52,13 +63,21 @@ export class SelectTool extends BaseTool {
 
         if (this.isDragging && this.state.selectedShapes.length > 0) {
             this.state.isDrawing = true;
-            const dx = coords.x - this.state.startX;
-            const dy = coords.y - this.state.startY;
+            const totalDX = coords.x - this.dragStartX;
+            const totalDY = coords.y - this.dragStartY;
             
-            this.state.moveShapes(this.state.selectedShapes, dx, dy);
-            
-            this.state.startX = coords.x;
-            this.state.startY = coords.y;
+            // Reset to initial and apply TOTAL move (fixes "stuck" feeling)
+            this.dragInitialShapes.forEach(initial => {
+                initial.shape.x = initial.x; 
+                initial.shape.y = initial.y;
+                if (initial.pts) initial.shape.points = JSON.parse(JSON.stringify(initial.pts));
+                if (initial.shape.type === 'line') { 
+                    initial.shape.endX = initial.ex; 
+                    initial.shape.endY = initial.ey; 
+                }
+            });
+
+            this.state.moveShapes(this.state.selectedShapes, totalDX, totalDY);
             this.updateCode();
         }
     }
@@ -80,6 +99,7 @@ export class SelectTool extends BaseTool {
         this.isDragging = false;
         this.state.isDrawing = false;
         this.state.activeResizeHandle = null;
+        this.dragInitialShapes = [];
         this.state.commitSnaps();
         this.state.activeSnaps = { x: [], y: [] };
     }

@@ -1,3 +1,5 @@
+import { SnapEngine } from './SnapEngine.js';
+
 export class BezierHandler {
     static handleBezierStart(state, redraw, props) {
         const { useFill, useStroke, fillColor, strokeColor, strokeWidth, opacity } = props;
@@ -69,6 +71,29 @@ export class BezierHandler {
         const p = state.currentShape.points[activePoint.index];
         state.mergeCandidate = null;
 
+        // Reset activeSnaps
+        state.activeSnaps = { x: [], y: [] };
+        const tm = state.transformManager;
+        const targets = SnapEngine.getSnapTargets(state.currentShape, state, tm);
+        const threshold = (state.snapThreshold || 8) / state.zoom;
+
+        // 1. Grid Snapping
+        if (state.snapToGrid && state.gridType !== 'none') {
+            const snapped = SnapEngine.snapPoint(x, y, state);
+            x = snapped.x; y = snapped.y;
+        } else {
+            // 2. Smart Object Snapping (with guides)
+            const snapX = SnapEngine.findBestSnap([x], targets.x, state, threshold);
+            if (snapX) {
+                x = snapX.value;
+                state.activeSnaps.x.push(SnapEngine.calculateSnapRange(snapX.value, 'x', state.currentShape, state, tm));
+            }
+            const snapY = SnapEngine.findBestSnap([y], targets.y, state, threshold);
+            if (snapY) {
+                y = snapY.value;
+                state.activeSnaps.y.push(SnapEngine.calculateSnapRange(snapY.value, 'y', state.currentShape, state, tm));
+            }
+        }
         if (activePoint.type === 'anchor') {
             const dx = x - p.x, dy = y - p.y;
             p.x = x; p.y = y;

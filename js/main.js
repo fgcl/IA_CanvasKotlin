@@ -15,6 +15,7 @@ import { ContextToolbar } from './ui/ContextToolbar.js';
 import { Timeline } from './ui/Timeline.js';
 import { LayoutEngine } from './core/LayoutEngine.js';
 import { UIManager } from './ui/UIManager.js';
+import { AnimationEngine } from './core/AnimationEngine.js';
 
 import { CodeViewer } from './ui/CodeViewer.js';
 import { AddComponentMenu } from './ui/AddComponentMenu.js';
@@ -83,7 +84,8 @@ const iconPicker = new IconPicker((iconName) => {
     if (state.selectedShapes.length === 1 && state.selectedShapes[0].type === 'icon') {
         state.saveState();
         state.selectedShapes[0].iconName = iconName;
-        updateCode(); redraw();
+        redraw();
+        setTimeout(() => updateCode(), 0);
     }
     state.lastSelectedIcon = iconName;
 });
@@ -117,21 +119,24 @@ const propertyEditor = new PropertyEditor({
 }, fillColorPicker, strokeColorPicker, state, (props) => {
     if (state.selectedShapes.length > 0) {
         state.saveState();
-        state.selectedShapes.forEach(shape => {
+        
+        const applyRecursive = (shape, properties) => {
             const oldVals = {};
-            Object.keys(props).forEach(p => oldVals[p] = shape[p]);
+            Object.keys(properties).forEach(p => {
+                // Capture old value: use animated value if keyframes exist, else raw value
+                if (shape.keyframes && shape.keyframes[p] && shape.keyframes[p].length > 0) {
+                    const animated = AnimationEngine.getInterpolatedValue(shape.keyframes[p], state.currentTime);
+                    oldVals[p] = animated !== null ? animated : shape[p];
+                } else {
+                    oldVals[p] = shape[p];
+                }
+            });
             
-            if (props.isGeometry) {
-                const { x, y, width, height } = props;
+            if (properties.isGeometry) {
+                const { x, y, width, height } = properties;
                 const oldW = shape.width, oldH = shape.height;
-                if (x !== undefined) {
-                    const dx = x - shape.x;
-                    state.moveShape(shape, dx, 0);
-                }
-                if (y !== undefined) {
-                    const dy = y - shape.y;
-                    state.moveShape(shape, 0, dy);
-                }
+                if (x !== undefined) state.moveShape(shape, x - shape.x, 0);
+                if (y !== undefined) state.moveShape(shape, 0, y - shape.y);
                 if (width !== undefined && shape.type !== 'text') {
                     if (shape.type === 'line') shape.endX = shape.x + width;
                     else shape.width = width;
@@ -140,25 +145,31 @@ const propertyEditor = new PropertyEditor({
                     if (shape.type === 'line') shape.endY = shape.y + height;
                     else shape.height = height;
                 }
-                // Trigger constraints if size changed
                 if ((width !== undefined || height !== undefined) && shape.children) {
                     LayoutEngine.applyConstraints(shape, oldW, oldH, state.transformManager);
                 }
             } else {
-                Object.assign(shape, props);
-                // Trigger layout if layout properties changed
-                if (props.layout && shape.type === 'group') {
-                    LayoutEngine.applyLayout(shape);
-                }
+                Object.assign(shape, properties);
+                if (properties.layout && shape.type === 'group') LayoutEngine.applyLayout(shape);
             }
-            state.syncKeyframes(shape, Object.keys(props), oldVals);
-        });
-        updateCode(); redraw();
+            
+            state.syncKeyframes(shape, Object.keys(properties), oldVals);
+
+            // If it's a group, optionally apply styles (colors, opacity) to children
+            if (shape.children && !properties.isGeometry && !properties.layout) {
+                shape.children.forEach(child => applyRecursive(child, properties));
+            }
+        };
+
+        state.selectedShapes.forEach(shape => applyRecursive(shape, props));
+        redraw();
+        setTimeout(() => updateCode(), 10);
     }
 });
 
 const layersPanel = new LayersPanel('layers-panel', state, () => {
-    redraw(); updateCode();
+    redraw();
+    setTimeout(() => updateCode(), 10);
 });
 
 const toolbar = new Toolbar(toolBtns, (tool) => {
@@ -179,7 +190,7 @@ const toolbar = new Toolbar(toolBtns, (tool) => {
 const textEditor = new TextEditorController();
 const contextToolbar = new ContextToolbar(state, () => {
     redraw(); updateCode();
-});
+}, fillColorPicker, strokeColorPicker);
 
 const timeline = new Timeline({
     playPauseBtn: document.getElementById('play-pause-btn'),
@@ -202,6 +213,44 @@ const addComponentMenu = new AddComponentMenu(state, (componentType) => {
     state.currentComponentType = componentType;
     // Visually indicate tool change
     toolBtns.forEach(btn => btn.classList.remove('active'));
+});
+
+// Image tool interaction
+const addImageBtn = document.getElementById('add-image-btn');
+const imageInput = document.getElementById('image-input');
+
+if (addImageBtn && imageInput) {
+    addImageBtn.addEventListener('click', () => {
+        imageInput.click();
+    });
+    
+    imageInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const center = state.screenToCanvas(canvas.width / 2, canvas.height / 2);
+            await state.addImage(file, center.x - 100, center.y - 100);
+            redraw();
+            updateCode();
+            imageInput.value = ''; // Reset for next use
+        }
+    });
+}
+
+// Paste event for images
+window.addEventListener('paste', async (e) => {
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+    
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            const blob = items[i].getAsFile();
+            const center = state.screenToCanvas(canvas.width / 2, canvas.height / 2);
+            await state.addImage(blob, center.x - 200, center.y - 200);
+            redraw();
+            updateCode();
+            return; // Only paste the first image for now
+        }
+    }
 });
 
 // Cross-component links
@@ -227,6 +276,9 @@ function redraw() {
     if (renderer) renderer.drawAll(state);
     if (layersPanel) layersPanel.render();
     if (contextToolbar) contextToolbar.update(canvas);
+    if (propertyEditor && state.selectedShapes.length > 0) {
+        propertyEditor.update(state.selectedShapes[0]);
+    }
     if (timeline) timeline.render();
     if (uiManager) uiManager.updateSidebarVisibility();
     updateZoomUI();
@@ -240,18 +292,38 @@ function updateZoomUI() {
 
 function handleColorChange(prop) {
     return (color) => {
-        if (state.selectedShapes.length > 0) {
+        if (!state || !state.selectedShapes || state.selectedShapes.length === 0) return;
+        
+        try {
             state.saveState();
             const isNone = color === 'transparent';
             const useProp = prop === 'fillColor' ? 'useFill' : 'useStroke';
-            state.selectedShapes.forEach(s => {
-                const oldVal = s[prop];
-                const oldUse = s[useProp];
-                s[prop] = color;
+            
+            const applyRecursiveColor = (s, c) => {
+                // Capture old values safely
+                const oldVal = (s.keyframes && s.keyframes[prop] && s.keyframes[prop].length > 0)
+                    ? (AnimationEngine.getInterpolatedValue(s.keyframes[prop], state.currentTime) ?? s[prop])
+                    : s[prop];
+                const oldUse = (s.keyframes && s.keyframes[useProp] && s.keyframes[useProp].length > 0)
+                    ? (AnimationEngine.getInterpolatedValue(s.keyframes[useProp], state.currentTime) ?? s[useProp])
+                    : s[useProp];
+
+                s[prop] = c;
                 s[useProp] = !isNone;
                 state.syncKeyframes(s, [prop, useProp], { [prop]: oldVal, [useProp]: oldUse });
-            });
-            updateCode(); redraw();
+
+                if (s.children) {
+                    s.children.forEach(child => applyRecursiveColor(child, c));
+                }
+            };
+
+            state.selectedShapes.forEach(s => applyRecursiveColor(s, color));
+            
+            redraw(); 
+            setTimeout(() => updateCode(), 0);
+        } catch (err) {
+            console.error('Error updating color:', err);
+            redraw();
         }
     };
 }

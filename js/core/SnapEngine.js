@@ -5,10 +5,15 @@ export class SnapEngine {
         if (!state.snapToGrid || state.gridType === 'none') return { x, y };
         
         const size = state.gridSize;
+        const threshold = (state.snapThreshold || 5) / state.zoom;
+
         if (state.gridType === 'square' || state.gridType === 'dots') {
+            const snappedX = Math.round(x / size) * size;
+            const snappedY = Math.round(y / size) * size;
+            
             return {
-                x: Math.round(x / size) * size,
-                y: Math.round(y / size) * size
+                x: Math.abs(x - snappedX) < threshold ? snappedX : x,
+                y: Math.abs(y - snappedY) < threshold ? snappedY : y
             };
         } else if (state.gridType === 'isometric') {
             const angle = Math.PI / 6;

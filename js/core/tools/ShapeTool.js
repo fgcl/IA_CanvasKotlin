@@ -50,11 +50,18 @@ export class ShapeTool extends BaseTool {
 
     onMouseUp(e, coords) {
         if (this.state.isDrawing && this.state.currentShape) {
-            this.state.addShape(this.state.currentShape);
-            this.state.selectedShapes = [this.state.currentShape];
-            this.updateCode();
+            const MIN_SIZE = 5;
+            const width = Math.abs(this.state.currentShape.width);
+            const height = Math.abs(this.state.currentShape.height);
+
+            if (width >= MIN_SIZE || height >= MIN_SIZE) {
+                this.state.addShape(this.state.currentShape);
+                this.state.selectedShapes = [this.state.currentShape];
+                this.updateCode();
+            }
         }
         this.state.isDrawing = false;
         this.state.currentShape = null;
+        this.redraw();
     }
 }

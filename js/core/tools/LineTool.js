@@ -52,11 +52,19 @@ export class LineTool extends BaseTool {
 
     onMouseUp(e, coords) {
         if (this.state.isDrawing && this.state.currentShape) {
-            this.state.addShape(this.state.currentShape);
-            this.state.selectedShapes = [this.state.currentShape];
-            this.updateCode();
+            const dx = this.state.currentShape.endX - this.state.currentShape.x;
+            const dy = this.state.currentShape.endY - this.state.currentShape.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const MIN_LENGTH = 5;
+
+            if (length >= MIN_LENGTH) {
+                this.state.addShape(this.state.currentShape);
+                this.state.selectedShapes = [this.state.currentShape];
+                this.updateCode();
+            }
         }
         this.state.isDrawing = false;
         this.state.currentShape = null;
+        this.redraw();
     }
 }

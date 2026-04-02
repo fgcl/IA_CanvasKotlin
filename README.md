@@ -1,6 +1,14 @@
 # 🎨 Gerador de designs | Canvas para KMP
 
-Eu vibecodei esse projeto para servir como uma ferramenta para criar facilmente designs, que a minha IA possa gerar interfaces mais bonitas e complexas.
+
+Acesse pelo link: https://fgcl.github.io/IA_CanvasKotlin/  
+
+Eu vibecodei esse projeto para ser utilizado por mim, como uma ferramenta para a criação facil de designs e animações para sites HTML e apps. Assim a IA pode saber exatamente como eu quero fazer o layout da minha aplicação e consiga gerar interfaces mais bonitas e complexas.  
+
+Eu sei que tem outras ferramentas que fazem isso, mas eu queria fazer do meu jeito :P e ficou bom sem a poluição visual que tem em outras ferramentas.
+
+O futuro do programador é desenvolver as ferramentas que vão ajudar a criar aplicações, e não apenas criar aplicações. Como a rockstar que tem sua própria engine.  
+Espero que esse projeto te motive a criar suas próprias ferramentas e parar de usar aplicações de terceiros.  
 
 O resto do texto abaixo foi gerado por IA e pode conter erros.
 
@@ -40,6 +48,9 @@ O **Kotlin Canvas** é um editor visual de alta performance, baseado na web, pro
 ## 🚀 Como Começar
 
 Como o Kotlin Canvas é construído com tecnologias web modernas, ele não requer instalação.
+1. Acesse agora mesmo pelo link https://fgcl.github.io/IA_CanvasKotlin/  
+
+ou
 
 1.  **Clone o repositório:**
     ```bash

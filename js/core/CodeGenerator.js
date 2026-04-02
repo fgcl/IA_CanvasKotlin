@@ -4,7 +4,7 @@ export class CodeGenerator {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
         const b = parseInt(hex.slice(5, 7), 16);
-        const a = Math.round((opacity || 1) * 255).toString(16).padStart(2, '0');
+        const a = Math.round((opacity || 1) * 255).toString(16).padStart(2, '0').toUpperCase();
         return `Color(0x${a}${hex.slice(1).toUpperCase()})`;
     }
 
@@ -165,6 +165,13 @@ export class CodeGenerator {
         } else if (shape.type === 'progress') {
             code += `${space}LinearProgressIndicator(\n`;
             code += `${space}    progress = ${(shape.value || 40)}f / 100f,\n`;
+            code += `${space}    modifier = ${modifier}\n`;
+            code += `${space})\n`;
+        } else if (shape.type === 'image') {
+            code += `${space}// TODO: Carregue seu Painter/Bitmap aqui: painterResource(id = R.drawable.my_image)\n`;
+            code += `${space}Image(\n`;
+            code += `${space}    painter = ColorPainter(Color.LightGray), // Substitua pelo seu recurso\n`;
+            code += `${space}    contentDescription = null,\n`;
             code += `${space}    modifier = ${modifier}\n`;
             code += `${space})\n`;
         } else {

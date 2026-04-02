@@ -4,6 +4,7 @@ import { SelectionManager } from './state/SelectionManager.js';
 import { ShapeManager } from './state/ShapeManager.js';
 import { PathManager } from './state/PathManager.js';
 import { AnimationManager } from './state/AnimationManager.js';
+import { AnimationEngine } from './AnimationEngine.js';
 
 export class State {
     constructor() {
@@ -88,6 +89,7 @@ export class State {
     ungroupSelected() { return this.shapeManager.ungroupSelected(); }
     copySelected() { return this.shapeManager.copySelected(); }
     paste() { return this.shapeManager.paste(); }
+    addImage(...args) { return this.shapeManager.addImage(...args); }
     duplicateSelected() { return this.shapeManager.duplicateSelected(); }
 
     // Delegates - PathManager
@@ -115,6 +117,19 @@ export class State {
         return null;
     }
 
+    /**
+     * Returns the shape with its properties interpolated for the current time.
+     * This is critical for hit testing and coordinate calculations during animation.
+     */
+    getActiveShape(id) {
+        const raw = this.findShapeById(id);
+        if (!raw) return null;
+        if (raw.keyframes && Object.keys(raw.keyframes).length > 0) {
+            return AnimationEngine.animateShape(raw, this.currentTime);
+        }
+        return raw;
+    }
+
     screenToCanvas(x, y) { return { x: (x - this.panX) / this.zoom, y: (y - this.panY) / this.zoom }; }
     canvasToScreen(x, y) { return { x: x * this.zoom + this.panX, y: y * this.zoom + this.panY }; }
     clear() { this.saveState(); this.shapes = []; this.selectedShapes = []; }
@@ -123,15 +138,22 @@ export class State {
     toggleLock(shape) { if (shape) { this.saveState(); shape.locked = !shape.locked; } }
     renameShape(shape, name) { if (shape && name) { this.saveState(); shape.name = name; } }
 
-    isPointInShape(x, y, shape) {
-        if (shape.type === 'rect' || shape.type === 'group' || shape.type === 'text' || shape.type === 'icon' || 
+    isPointInShape(x, y, rawShape) {
+        if (!rawShape) return false;
+        
+        // --- HIT TESTING MUST BE ANIMATION-AWARE ---
+        const shape = (rawShape.keyframes && Object.keys(rawShape.keyframes).length > 0) ? 
+            AnimationEngine.animateShape(rawShape, this.currentTime) : rawShape;
+
+        if (shape.type === 'rect' || shape.type === 'image' || shape.type === 'group' || shape.type === 'text' || shape.type === 'icon' || 
             ['button', 'input', 'checkbox', 'switch', 'slider', 'progress'].includes(shape.type)) {
             const b = this.getShapeBounds(shape);
             return x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
         }
         if (shape.type === 'circle') {
             const abs = this.getAbsoluteCoords(shape);
-            return Math.sqrt((x - abs.x)**2 + (y - abs.y)**2) <= Math.sqrt(shape.width**2 + shape.height**2);
+            const radius = Math.sqrt((shape.width/2)**2 + (shape.height/2)**2);
+            return Math.sqrt((x - (abs.x + shape.width/2))**2 + (y - (abs.y + shape.height/2))**2) <= radius;
         }
         if (shape.type === 'line') {
             const abs = this.getAbsoluteCoords(shape);

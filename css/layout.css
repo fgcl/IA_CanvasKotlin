@@ -13,6 +13,7 @@ main {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
     z-index: 1100;
 }
 
@@ -21,15 +22,22 @@ main {
     top: 16px;
     left: 16px;
     width: 210px;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - var(--timeline-offset) - 40px);
     border-radius: var(--radius-lg);
     padding: var(--spacing-md);
     gap: var(--spacing-md);
     z-index: 2000;
     box-shadow: var(--shadow-lg);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s ease;
     opacity: 1;
     transform: translateX(0);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Specific fix for the left floating sidebar */
+#left-sidebar.floating-panel {
+    max-height: calc(100vh - var(--timeline-offset) - 32px) !important;
 }
 
 .floating-panel.hidden {
@@ -41,15 +49,15 @@ main {
 /* .sidebar.collapsed is deprecated for floating UI */
 
 .code-sidebar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-right: none;
     border-left: 1px solid var(--border-color);
     width: 420px;
     gap: 0 !important;
     padding: 0 !important;
+    flex-shrink: 0;
 }
 
 .code-sidebar.collapsed {
